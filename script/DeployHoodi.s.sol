@@ -31,7 +31,9 @@ contract DeployHoodi is Script {
             IERC20(TT2_TOKEN),
             ITrufNetworkBridge(TRUF_BRIDGE),
             deployer,     // operator (EOA for testnet)
-            curatorTN     // curator TN wallet
+            curatorTN,    // curator TN wallet
+            "TrufVault Share",
+            "tvUSDC"
         );
 
         console2.log("TrufVault deployed at:", address(vault));
