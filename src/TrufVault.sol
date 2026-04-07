@@ -131,11 +131,7 @@ contract TrufVault is ERC4626, ERC20Permit, Pausable, ReentrancyGuard {
         address curatorTNAddress_,
         string memory name_,
         string memory symbol_
-    )
-        ERC4626(asset_)
-        ERC20(name_, symbol_)
-        ERC20Permit(name_)
-    {
+    ) ERC4626(asset_) ERC20(name_, symbol_) ERC20Permit(name_) {
         if (address(bridge_) == address(0)) revert ZeroAddress();
         if (operator_ == address(0)) revert ZeroAddress();
         if (curatorTNAddress_ == address(0)) revert ZeroAddress();
@@ -193,13 +189,7 @@ contract TrufVault is ERC4626, ERC20Permit, Pausable, ReentrancyGuard {
     }
 
     /// @notice Deposits are paused when vault is paused. Accrues fees before deposit.
-    function deposit(uint256 assets, address receiver)
-        public
-        override
-        whenNotPaused
-        nonReentrant
-        returns (uint256)
-    {
+    function deposit(uint256 assets, address receiver) public override whenNotPaused nonReentrant returns (uint256) {
         _accrueFee();
         uint256 shares = super.deposit(assets, receiver);
         _initHighWaterMark();
@@ -207,13 +197,7 @@ contract TrufVault is ERC4626, ERC20Permit, Pausable, ReentrancyGuard {
     }
 
     /// @notice Minting is paused when vault is paused. Accrues fees before mint.
-    function mint(uint256 shares, address receiver)
-        public
-        override
-        whenNotPaused
-        nonReentrant
-        returns (uint256)
-    {
+    function mint(uint256 shares, address receiver) public override whenNotPaused nonReentrant returns (uint256) {
         _accrueFee();
         uint256 assets = super.mint(shares, receiver);
         _initHighWaterMark();

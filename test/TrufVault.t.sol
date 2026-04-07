@@ -29,12 +29,7 @@ contract TrufVaultTest is Test {
         token = new MockERC20("Test USDC", "USDC", 6);
         bridge = new MockBridge(address(token));
         vault = new TrufVault(
-            IERC20(address(token)),
-            ITrufNetworkBridge(address(bridge)),
-            operator,
-            curator,
-            "TrufVault Share",
-            "tvUSDC"
+            IERC20(address(token)), ITrufNetworkBridge(address(bridge)), operator, curator, "TrufVault Share", "tvUSDC"
         );
 
         // Fund users
@@ -79,9 +74,7 @@ contract TrufVaultTest is Test {
         MockERC20 token18 = new MockERC20("DAI", "DAI", 18);
         MockBridge bridge18 = new MockBridge(address(token18));
         TrufVault vault18 = new TrufVault(
-            IERC20(address(token18)),
-            ITrufNetworkBridge(address(bridge18)),
-            operator, curator, "TrufVault DAI", "tvDAI"
+            IERC20(address(token18)), ITrufNetworkBridge(address(bridge18)), operator, curator, "TrufVault DAI", "tvDAI"
         );
         assertEq(vault18.DECIMALS_OFFSET(), 0);
         assertEq(vault18.decimals(), 18);
@@ -92,17 +85,9 @@ contract TrufVaultTest is Test {
         MockBridge wrongBridge = new MockBridge(address(wrongToken));
 
         vm.expectRevert(
-            abi.encodeWithSelector(
-                TrufVault.BridgeAssetMismatch.selector,
-                address(wrongToken),
-                address(token)
-            )
+            abi.encodeWithSelector(TrufVault.BridgeAssetMismatch.selector, address(wrongToken), address(token))
         );
-        new TrufVault(
-            IERC20(address(token)),
-            ITrufNetworkBridge(address(wrongBridge)),
-            operator, curator, "V", "V"
-        );
+        new TrufVault(IERC20(address(token)), ITrufNetworkBridge(address(wrongBridge)), operator, curator, "V", "V");
     }
 
     function test_constructor_bridgeMaxApproval() public view {
@@ -112,29 +97,17 @@ contract TrufVaultTest is Test {
 
     function test_constructor_revertsZeroBridge() public {
         vm.expectRevert(TrufVault.ZeroAddress.selector);
-        new TrufVault(
-            IERC20(address(token)),
-            ITrufNetworkBridge(address(0)),
-            operator, curator, "V", "V"
-        );
+        new TrufVault(IERC20(address(token)), ITrufNetworkBridge(address(0)), operator, curator, "V", "V");
     }
 
     function test_constructor_revertsZeroOperator() public {
         vm.expectRevert(TrufVault.ZeroAddress.selector);
-        new TrufVault(
-            IERC20(address(token)),
-            ITrufNetworkBridge(address(bridge)),
-            address(0), curator, "V", "V"
-        );
+        new TrufVault(IERC20(address(token)), ITrufNetworkBridge(address(bridge)), address(0), curator, "V", "V");
     }
 
     function test_constructor_revertsZeroCurator() public {
         vm.expectRevert(TrufVault.ZeroAddress.selector);
-        new TrufVault(
-            IERC20(address(token)),
-            ITrufNetworkBridge(address(bridge)),
-            operator, address(0), "V", "V"
-        );
+        new TrufVault(IERC20(address(token)), ITrufNetworkBridge(address(bridge)), operator, address(0), "V", "V");
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -1387,7 +1360,11 @@ contract TrufVaultFactoryTest is Test {
         address v1 = factory.createVault(
             IERC20(address(token)),
             ITrufNetworkBridge(address(bridge)),
-            operator, curator, "Vault 1", "tv1", bytes32(uint256(1))
+            operator,
+            curator,
+            "Vault 1",
+            "tv1",
+            bytes32(uint256(1))
         );
 
         MockERC20 token2 = new MockERC20("DAI", "DAI", 18);
@@ -1396,7 +1373,11 @@ contract TrufVaultFactoryTest is Test {
         address v2 = factory.createVault(
             IERC20(address(token2)),
             ITrufNetworkBridge(address(bridge2)),
-            operator, curator, "Vault 2", "tv2", bytes32(uint256(2))
+            operator,
+            curator,
+            "Vault 2",
+            "tv2",
+            bytes32(uint256(2))
         );
 
         assertTrue(factory.isVault(v1));
@@ -1409,9 +1390,7 @@ contract TrufVaultFactoryTest is Test {
         bytes32 salt = bytes32(uint256(42));
 
         address v1 = factory.createVault(
-            IERC20(address(token)),
-            ITrufNetworkBridge(address(bridge)),
-            operator, curator, "V1", "tv1", salt
+            IERC20(address(token)), ITrufNetworkBridge(address(bridge)), operator, curator, "V1", "tv1", salt
         );
 
         // Same salt + same params from same factory → would revert (CREATE2 collision)
@@ -1419,7 +1398,11 @@ contract TrufVaultFactoryTest is Test {
         address v2 = factory.createVault(
             IERC20(address(token)),
             ITrufNetworkBridge(address(bridge)),
-            operator, curator, "V2", "tv2", bytes32(uint256(43))
+            operator,
+            curator,
+            "V2",
+            "tv2",
+            bytes32(uint256(43))
         );
 
         assertTrue(v1 != v2);
@@ -1428,9 +1411,7 @@ contract TrufVaultFactoryTest is Test {
     function test_createVault_revertsZeroAsset() public {
         vm.expectRevert(TrufVaultFactory.ZeroAddress.selector);
         factory.createVault(
-            IERC20(address(0)),
-            ITrufNetworkBridge(address(bridge)),
-            operator, curator, "V", "V", bytes32(0)
+            IERC20(address(0)), ITrufNetworkBridge(address(bridge)), operator, curator, "V", "V", bytes32(0)
         );
     }
 
@@ -1438,7 +1419,11 @@ contract TrufVaultFactoryTest is Test {
         address vaultAddr = factory.createVault(
             IERC20(address(token)),
             ITrufNetworkBridge(address(bridge)),
-            operator, curator, "TrufVault USDC", "tvUSDC", bytes32(uint256(1))
+            operator,
+            curator,
+            "TrufVault USDC",
+            "tvUSDC",
+            bytes32(uint256(1))
         );
 
         TrufVault v = TrufVault(vaultAddr);

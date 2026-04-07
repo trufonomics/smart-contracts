@@ -31,11 +31,11 @@ contract AutoBridgeModuleTest is Test {
     address public attacker = makeAddr("attacker");
 
     uint256 constant INITIAL_BALANCE = 1_000_000e6; // 1M USDC
-    uint256 constant ALICE_DEPOSIT = 100_000e6;     // 100K USDC
+    uint256 constant ALICE_DEPOSIT = 100_000e6; // 100K USDC
 
     // Default module parameters
     uint256 constant INIT_PER_TX_BPS = 1000; // 10%
-    uint256 constant INIT_DAILY_BPS = 3000;  // 30%
+    uint256 constant INIT_DAILY_BPS = 3000; // 30%
     uint256 constant INIT_RESERVE_BPS = 1500; // 15%
     uint256 constant INIT_COOLDOWN = 1 hours;
 
@@ -56,20 +56,14 @@ contract AutoBridgeModuleTest is Test {
 
         // Deploy the module
         module = new AutoBridgeModule(
-            ISafe(address(safe)),
-            vault,
-            INIT_PER_TX_BPS,
-            INIT_DAILY_BPS,
-            INIT_RESERVE_BPS,
-            INIT_COOLDOWN
+            ISafe(address(safe)), vault, INIT_PER_TX_BPS, INIT_DAILY_BPS, INIT_RESERVE_BPS, INIT_COOLDOWN
         );
 
         // Install the module on the Safe (in real life: 2-of-3 multisig signs enableModule)
         safe.enableModule(address(module));
 
         // Set up the keeper (in real life: 2-of-3 multisig signs transferKeeper, then bot calls acceptKeeper)
-        bytes memory transferKeeperData =
-            abi.encodeCall(AutoBridgeModule.transferKeeper, (keeperEOA));
+        bytes memory transferKeeperData = abi.encodeCall(AutoBridgeModule.transferKeeper, (keeperEOA));
         safe.execAsSafe(address(module), transferKeeperData);
         vm.prank(keeperEOA);
         module.acceptKeeper();
@@ -106,12 +100,7 @@ contract AutoBridgeModuleTest is Test {
     function test_constructor_keeperUnsetByDefault() public {
         // Re-deploy a fresh module to test that keeper is unset before transferKeeper
         AutoBridgeModule fresh = new AutoBridgeModule(
-            ISafe(address(safe)),
-            vault,
-            INIT_PER_TX_BPS,
-            INIT_DAILY_BPS,
-            INIT_RESERVE_BPS,
-            INIT_COOLDOWN
+            ISafe(address(safe)), vault, INIT_PER_TX_BPS, INIT_DAILY_BPS, INIT_RESERVE_BPS, INIT_COOLDOWN
         );
         assertEq(fresh.keeper(), address(0));
         assertEq(fresh.pendingKeeper(), address(0));
@@ -124,14 +113,7 @@ contract AutoBridgeModuleTest is Test {
 
     function test_constructor_revertsZeroSafe() public {
         vm.expectRevert(AutoBridgeModule.ZeroAddress.selector);
-        new AutoBridgeModule(
-            ISafe(address(0)),
-            vault,
-            INIT_PER_TX_BPS,
-            INIT_DAILY_BPS,
-            INIT_RESERVE_BPS,
-            INIT_COOLDOWN
-        );
+        new AutoBridgeModule(ISafe(address(0)), vault, INIT_PER_TX_BPS, INIT_DAILY_BPS, INIT_RESERVE_BPS, INIT_COOLDOWN);
     }
 
     function test_constructor_revertsZeroVault() public {
@@ -151,76 +133,34 @@ contract AutoBridgeModuleTest is Test {
         MockSafe wrongSafe = new MockSafe();
 
         vm.expectRevert(
-            abi.encodeWithSelector(
-                AutoBridgeModule.VaultOperatorMismatch.selector,
-                address(safe),
-                address(wrongSafe)
-            )
+            abi.encodeWithSelector(AutoBridgeModule.VaultOperatorMismatch.selector, address(safe), address(wrongSafe))
         );
         new AutoBridgeModule(
-            ISafe(address(wrongSafe)),
-            vault,
-            INIT_PER_TX_BPS,
-            INIT_DAILY_BPS,
-            INIT_RESERVE_BPS,
-            INIT_COOLDOWN
+            ISafe(address(wrongSafe)), vault, INIT_PER_TX_BPS, INIT_DAILY_BPS, INIT_RESERVE_BPS, INIT_COOLDOWN
         );
     }
 
     function test_constructor_revertsPerTxBpsZero() public {
         vm.expectRevert(
-            abi.encodeWithSelector(
-                AutoBridgeModule.PerTxBridgeBpsTooHigh.selector,
-                0,
-                module.MAX_PER_TX_BRIDGE_BPS()
-            )
+            abi.encodeWithSelector(AutoBridgeModule.PerTxBridgeBpsTooHigh.selector, 0, module.MAX_PER_TX_BRIDGE_BPS())
         );
-        new AutoBridgeModule(
-            ISafe(address(safe)),
-            vault,
-            0,
-            INIT_DAILY_BPS,
-            INIT_RESERVE_BPS,
-            INIT_COOLDOWN
-        );
+        new AutoBridgeModule(ISafe(address(safe)), vault, 0, INIT_DAILY_BPS, INIT_RESERVE_BPS, INIT_COOLDOWN);
     }
 
     function test_constructor_revertsPerTxBpsTooHigh() public {
         uint256 bad = module.MAX_PER_TX_BRIDGE_BPS() + 1;
         vm.expectRevert(
-            abi.encodeWithSelector(
-                AutoBridgeModule.PerTxBridgeBpsTooHigh.selector,
-                bad,
-                module.MAX_PER_TX_BRIDGE_BPS()
-            )
+            abi.encodeWithSelector(AutoBridgeModule.PerTxBridgeBpsTooHigh.selector, bad, module.MAX_PER_TX_BRIDGE_BPS())
         );
-        new AutoBridgeModule(
-            ISafe(address(safe)),
-            vault,
-            bad,
-            INIT_DAILY_BPS,
-            INIT_RESERVE_BPS,
-            INIT_COOLDOWN
-        );
+        new AutoBridgeModule(ISafe(address(safe)), vault, bad, INIT_DAILY_BPS, INIT_RESERVE_BPS, INIT_COOLDOWN);
     }
 
     function test_constructor_revertsDailyBpsTooHigh() public {
         uint256 bad = module.MAX_DAILY_BRIDGE_BPS() + 1;
         vm.expectRevert(
-            abi.encodeWithSelector(
-                AutoBridgeModule.DailyBridgeBpsTooHigh.selector,
-                bad,
-                module.MAX_DAILY_BRIDGE_BPS()
-            )
+            abi.encodeWithSelector(AutoBridgeModule.DailyBridgeBpsTooHigh.selector, bad, module.MAX_DAILY_BRIDGE_BPS())
         );
-        new AutoBridgeModule(
-            ISafe(address(safe)),
-            vault,
-            INIT_PER_TX_BPS,
-            bad,
-            INIT_RESERVE_BPS,
-            INIT_COOLDOWN
-        );
+        new AutoBridgeModule(ISafe(address(safe)), vault, INIT_PER_TX_BPS, bad, INIT_RESERVE_BPS, INIT_COOLDOWN);
     }
 
     function test_constructor_revertsReserveBpsTooLow() public {
@@ -233,14 +173,7 @@ contract AutoBridgeModuleTest is Test {
                 module.MAX_ALLOWED_RESERVE_BPS()
             )
         );
-        new AutoBridgeModule(
-            ISafe(address(safe)),
-            vault,
-            INIT_PER_TX_BPS,
-            INIT_DAILY_BPS,
-            bad,
-            INIT_COOLDOWN
-        );
+        new AutoBridgeModule(ISafe(address(safe)), vault, INIT_PER_TX_BPS, INIT_DAILY_BPS, bad, INIT_COOLDOWN);
     }
 
     function test_constructor_revertsReserveBpsTooHigh() public {
@@ -253,14 +186,7 @@ contract AutoBridgeModuleTest is Test {
                 module.MAX_ALLOWED_RESERVE_BPS()
             )
         );
-        new AutoBridgeModule(
-            ISafe(address(safe)),
-            vault,
-            INIT_PER_TX_BPS,
-            INIT_DAILY_BPS,
-            bad,
-            INIT_COOLDOWN
-        );
+        new AutoBridgeModule(ISafe(address(safe)), vault, INIT_PER_TX_BPS, INIT_DAILY_BPS, bad, INIT_COOLDOWN);
     }
 
     function test_constructor_revertsCooldownTooLow() public {
@@ -273,14 +199,7 @@ contract AutoBridgeModuleTest is Test {
                 module.MAX_CLAIM_COOLDOWN()
             )
         );
-        new AutoBridgeModule(
-            ISafe(address(safe)),
-            vault,
-            INIT_PER_TX_BPS,
-            INIT_DAILY_BPS,
-            INIT_RESERVE_BPS,
-            bad
-        );
+        new AutoBridgeModule(ISafe(address(safe)), vault, INIT_PER_TX_BPS, INIT_DAILY_BPS, INIT_RESERVE_BPS, bad);
     }
 
     function test_constructor_revertsCooldownTooHigh() public {
@@ -293,14 +212,7 @@ contract AutoBridgeModuleTest is Test {
                 module.MAX_CLAIM_COOLDOWN()
             )
         );
-        new AutoBridgeModule(
-            ISafe(address(safe)),
-            vault,
-            INIT_PER_TX_BPS,
-            INIT_DAILY_BPS,
-            INIT_RESERVE_BPS,
-            bad
-        );
+        new AutoBridgeModule(ISafe(address(safe)), vault, INIT_PER_TX_BPS, INIT_DAILY_BPS, INIT_RESERVE_BPS, bad);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -372,13 +284,7 @@ contract AutoBridgeModuleTest is Test {
         uint256 expectedCap = (ALICE_DEPOSIT * INIT_PER_TX_BPS) / 10_000;
 
         vm.prank(keeperEOA);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                AutoBridgeModule.PerTxCapExceeded.selector,
-                amount,
-                expectedCap
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(AutoBridgeModule.PerTxCapExceeded.selector, amount, expectedCap));
         module.autoBridgeToTN(amount);
     }
 
@@ -396,13 +302,7 @@ contract AutoBridgeModuleTest is Test {
 
         // 4th call — daily cap exhausted (remainingToday == 0)
         vm.prank(keeperEOA);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                AutoBridgeModule.DailyCapExceeded.selector,
-                1,
-                0
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(AutoBridgeModule.DailyCapExceeded.selector, 1, 0));
         module.autoBridgeToTN(1);
     }
 
@@ -445,13 +345,7 @@ contract AutoBridgeModuleTest is Test {
 
         // Next 10K bridge: idleAfter = 10K, reserveFloor = 15K → BREACH
         vm.prank(keeperEOA);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                AutoBridgeModule.ReserveFloorBreached.selector,
-                10_000e6,
-                15_000e6
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(AutoBridgeModule.ReserveFloorBreached.selector, 10_000e6, 15_000e6));
         module.autoBridgeToTN(10_000e6);
     }
 
@@ -541,13 +435,7 @@ contract AutoBridgeModuleTest is Test {
         assertEq(module.remainingBridgeableThisPeriod(), 0);
 
         vm.prank(keeperEOA);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                AutoBridgeModule.DailyCapExceeded.selector,
-                1,
-                0
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(AutoBridgeModule.DailyCapExceeded.selector, 1, 0));
         module.autoBridgeToTN(1);
     }
 
@@ -606,12 +494,7 @@ contract AutoBridgeModuleTest is Test {
         // Immediately try again — cooldown not elapsed
         uint256 nextAllowed = module.lastClaimAt() + INIT_COOLDOWN;
         vm.prank(keeperEOA);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                AutoBridgeModule.ClaimCooldownNotElapsed.selector,
-                nextAllowed
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(AutoBridgeModule.ClaimCooldownNotElapsed.selector, nextAllowed));
         module.autoClaimFromTN(1_000e6, bytes32(0), bytes32(0), proof, sigs);
     }
 
@@ -626,13 +509,7 @@ contract AutoBridgeModuleTest is Test {
         ITrufNetworkBridge.Signature[] memory sigs = new ITrufNetworkBridge.Signature[](0);
 
         vm.prank(keeperEOA);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                AutoBridgeModule.ClaimExceedsDeployed.selector,
-                3_000e6,
-                2_000e6
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(AutoBridgeModule.ClaimExceedsDeployed.selector, 3_000e6, 2_000e6));
         module.autoClaimFromTN(3_000e6, bytes32(0), bytes32(0), proof, sigs);
     }
 

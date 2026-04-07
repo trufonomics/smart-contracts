@@ -36,12 +36,11 @@ contract MockSafe is ISafe {
     /// @dev Validates the caller is an enabled module, then low-level calls `to` with `data`
     ///      so the target sees `msg.sender == address(this)` — exactly how a real Safe routes
     ///      module-originated transactions.
-    function execTransactionFromModule(
-        address to,
-        uint256 value,
-        bytes memory data,
-        Operation operation
-    ) external override returns (bool success) {
+    function execTransactionFromModule(address to, uint256 value, bytes memory data, Operation operation)
+        external
+        override
+        returns (bool success)
+    {
         if (!modulesEnabled[msg.sender]) revert ModuleNotEnabled();
 
         if (operation == Operation.Call) {

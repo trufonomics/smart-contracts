@@ -351,12 +351,7 @@ contract AutoBridgeModule is ReentrancyGuard {
         lastClaimAt = block.timestamp;
 
         // Interaction
-        _execVaultCall(
-            abi.encodeCall(
-                TrufVault.claimFromTN,
-                (amount, kwilBlockHash, root, proof, signatures)
-            )
-        );
+        _execVaultCall(abi.encodeCall(TrufVault.claimFromTN, (amount, kwilBlockHash, root, proof, signatures)));
 
         emit AutoClaimed(amount, block.timestamp);
     }
@@ -476,12 +471,7 @@ contract AutoBridgeModule is ReentrancyGuard {
     ///      Modeled on Zodiac's Module.exec() — every interaction with the Safe goes through this
     ///      one function, so the auditor has exactly one place to verify the call shape.
     function _execVaultCall(bytes memory data) internal {
-        bool success = safe.execTransactionFromModule(
-            address(vault),
-            0,
-            data,
-            ISafe.Operation.Call
-        );
+        bool success = safe.execTransactionFromModule(address(vault), 0, data, ISafe.Operation.Call);
         if (!success) revert SafeCallFailed();
     }
 }

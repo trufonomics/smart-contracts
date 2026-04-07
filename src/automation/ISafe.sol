@@ -28,12 +28,9 @@ interface ISafe {
     /// @param data ABI-encoded calldata for the target.
     /// @param operation Call or DelegateCall (always Call for the AutoBridgeModule).
     /// @return success True if the underlying call succeeded.
-    function execTransactionFromModule(
-        address to,
-        uint256 value,
-        bytes memory data,
-        Operation operation
-    ) external returns (bool success);
+    function execTransactionFromModule(address to, uint256 value, bytes memory data, Operation operation)
+        external
+        returns (bool success);
 
     /// @notice Whether a given address is an enabled module on this Safe.
     /// @dev Retained for operational tooling and parity with the canonical Safe surface.

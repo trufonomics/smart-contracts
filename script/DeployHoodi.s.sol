@@ -30,8 +30,8 @@ contract DeployHoodi is Script {
         TrufVault vault = new TrufVault(
             IERC20(TT2_TOKEN),
             ITrufNetworkBridge(TRUF_BRIDGE),
-            deployer,     // operator (EOA for testnet)
-            curatorTN,    // curator TN wallet
+            deployer, // operator (EOA for testnet)
+            curatorTN, // curator TN wallet
             "TrufVault Share",
             "tvUSDC"
         );

@@ -29,14 +29,10 @@ contract MockBridge is ITrufNetworkBridge {
         IERC20(token_).transferFrom(msg.sender, address(this), amount);
     }
 
-    function withdraw(
-        address recipient,
-        uint256 amount,
-        bytes32,
-        bytes32,
-        bytes32[] calldata,
-        Signature[] calldata
-    ) external override {
+    function withdraw(address recipient, uint256 amount, bytes32, bytes32, bytes32[] calldata, Signature[] calldata)
+        external
+        override
+    {
         require(!shouldRevert, "MockBridge: revert");
         lastWithdrawAmount = amount;
         lastWithdrawRecipient = recipient;

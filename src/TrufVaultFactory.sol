@@ -58,29 +58,14 @@ contract TrufVaultFactory {
     ) external returns (address vault) {
         if (address(asset) == address(0)) revert ZeroAddress();
 
-        TrufVault v = new TrufVault{salt: salt}(
-            asset,
-            bridge,
-            operator_,
-            curatorTNAddress,
-            name,
-            symbol
-        );
+        TrufVault v = new TrufVault{salt: salt}(asset, bridge, operator_, curatorTNAddress, name, symbol);
 
         vault = address(v);
         isVault[vault] = true;
         vaults.push(vault);
 
         emit VaultCreated(
-            vault,
-            msg.sender,
-            address(asset),
-            address(bridge),
-            operator_,
-            curatorTNAddress,
-            name,
-            symbol,
-            salt
+            vault, msg.sender, address(asset), address(bridge), operator_, curatorTNAddress, name, symbol, salt
         );
     }
 
