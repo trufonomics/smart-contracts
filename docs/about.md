@@ -416,3 +416,22 @@ Each vault is an independent, immutable contract. The factory doesn't control th
 | Idle-only withdrawals | Bridge proofs take 15-30 min. Can't block user tx. Operator manages reserve. |
 | Factory + registry | One audit, unlimited vaults. On-chain `isVault` for integrator verification. |
 | No proxy/upgradeability | What you see is what you get. No governance risk. No upgrade attack surface. |
+
+---
+
+## Operator Automation
+
+The vault ships with a **Gnosis Safe module** — `AutoBridgeModule` — alongside the vault itself. The module is installed onto the operator Safe at launch and handles routine bridge operations on the Safe's behalf within hardcoded caps, reserve floors, and cooldowns. Manual signing on every `depositToTN` / `claimFromTN` does not survive contact with continuous deposit/withdraw flow once Merkl rewards and LP partnerships are live.
+
+**The vault contracts do not change for this.** The operator role on the vault stays a single address — the Safe — forever. The module is *installed onto* the Safe via `enableModule`; it is not given the Safe's role. The Safe still holds every other power (`pause`, `setFee`, `recordPnL`, `updateCurator`, `transferOperator`) and can revoke the module instantly with one transaction.
+
+Key constraints, all enforced in the module's bytecode and bounded by hardcoded ceilings the multisig itself cannot lift:
+
+- Per-tx bridge cap ≤ 10% of total assets (constant `MAX_PER_TX_BRIDGE_BPS`)
+- Daily bridge cap ≤ 30% of the period-start asset base (constant `MAX_DAILY_BRIDGE_BPS`), lazy-reset on UTC day boundary
+- Reserve floor ≥ 5% of total assets, ≤ 50% (constants `MIN_ALLOWED_RESERVE_BPS` / `MAX_ALLOWED_RESERVE_BPS`)
+- Claim cooldown ≥ 5 minutes, ≤ 1 day (constants `MIN_CLAIM_COOLDOWN` / `MAX_CLAIM_COOLDOWN`)
+- Strict single-role keeper (one address, typically an EOA, with two-step rotation matching the vault's `transferOperator` pattern)
+- Module exposes **only** `autoBridgeToTN` and `autoClaimFromTN`. No code path to `pause`, `setFee`, `recordPnL`, `updateCurator`, `transferOperator`, or any other operator function.
+
+These caps constrain the module-routed keeper path only; the Safe still retains its normal direct operator path. Activation is two multisig transactions plus one keeper-address call. Kill switch is one multisig transaction (`disableModule` on the Safe). See [automation-module.md](automation-module.md) for the full design, the activation flow, the pattern lineage from Safe Allowance Module / Zodiac / Lido LimitsChecker / Yearn TokenizedStrategy, and the two open questions for the audit.
